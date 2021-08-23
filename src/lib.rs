@@ -42,12 +42,40 @@ pub enum Event<'a> {
 mod tests {
     use super::*;
     #[test]
-    fn parser() {
+    fn parse_normal_input() {
         let test_string = "# Heading\n- List1";
         let parser = Parser::new(test_string);
         let events = parser.collect::<Vec<Event>>();
 
         assert_eq!(events[0], Event::Heading("Heading"));
         assert_eq!(events[1], Event::List("List1"));
+    }
+
+    #[test]
+    fn parse_malformed_input() {
+        let test_string = "# ";
+        let parser = Parser::new(test_string);
+        let events = parser.collect::<Vec<Event>>();
+
+        assert_eq!(events[0], Event::Heading(""));
+    }
+
+    #[test]
+    fn parse_malformed_and_normal_input() {
+        let test_string = "# \n- List1";
+        let parser = Parser::new(test_string);
+        let events = parser.collect::<Vec<Event>>();
+
+        assert_eq!(events[0], Event::Heading(""));
+        assert_eq!(events[1], Event::List("List1"));
+    }
+
+    #[test]
+    fn parse_typo_input() {
+        let test_string = "-List1";
+        let parser = Parser::new(test_string);
+        let events = parser.collect::<Vec<Event>>();
+
+        assert_eq!(events[0], Event::Text("-List1"));
     }
 }
