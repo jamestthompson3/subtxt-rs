@@ -15,6 +15,9 @@ impl<'a> Iterator for Parser<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         match self.input.next() {
             Some(line) => {
+                if line.is_empty() {
+                    return Some(Event::Empty);
+                }
                 let mut chars = line.chars();
                 match (chars.next().unwrap(), chars.next().unwrap()) {
                     ('#', ' ') => Some(Event::Heading(line.split_at(2).1)),
@@ -36,6 +39,7 @@ pub enum Event<'a> {
     List(&'a str),
     Quote(&'a str),
     Link(&'a str),
+    Empty,
 }
 
 #[cfg(test)]
@@ -77,5 +81,14 @@ mod tests {
         let events = parser.collect::<Vec<Event>>();
 
         assert_eq!(events[0], Event::Text("-List1"));
+    }
+
+    #[test]
+    fn parse_empty_lines() {
+        let test_string = "asdf\n\nasdf";
+        let parser = Parser::new(test_string);
+        let events = parser.collect::<Vec<Event>>();
+
+        assert_eq!(events[1], Event::Empty);
     }
 }
